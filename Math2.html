@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Математика для Анисии — Учимся с Оксаной Евгеньевной</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', 'Comfortaa', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%);
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+        }
+
+        .font-header {
+            font-family: 'Comfortaa', cursive;
+        }
+
+        .bounce-in {
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .pulse-btn {
+            transition: all 0.15s ease;
+        }
+        .pulse-btn:active {
+            transform: scale(0.94);
+        }
+
+        /* Tree connector lines */
+        .tree-line-left {
+            position: absolute;
+            width: 4px;
+            height: 40px;
+            background-color: #4b5563;
+            top: 100%;
+            left: 35%;
+            transform: rotate(25deg);
+            transform-origin: top center;
+        }
+        .tree-line-right {
+            position: absolute;
+            width: 4px;
+            height: 40px;
+            background-color: #4b5563;
+            top: 100%;
+            right: 35%;
+            transform: rotate(-25deg);
+            transform-origin: top center;
+        }
+
+        .apple-anim {
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Teacher Pop-up Animation */
+        .teacher-popup {
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+        }
+        .teacher-hidden {
+            transform: translateY(140%) scale(0.8);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .teacher-visible {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Glow Effect for Happy Teacher */
+        .happy-glow {
+            box-shadow: 0 0 25px #facc15, 0 0 50px #f59e0b;
+            animation: pulseGlow 1.5s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 15px #facc15, 0 0 30px #f59e0b; }
+            100% { box-shadow: 0 0 35px #fef08a, 0 0 65px #eab308; }
+        }
+
+        /* Speech bubble arrow */
+        .bubble-arrow::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 12px 12px 0;
+            border-style: solid;
+            border-color: #ffffff transparent;
+            display: block;
+            width: 0;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between min-h-screen p-2 md:p-6 text-gray-800 relative">
+
+    <!-- Header Section -->
+    <header class="w-full max-w-2xl bg-white/90 backdrop-blur-md rounded-3xl p-3 md:p-4 shadow-lg flex items-center justify-between mb-2 border-2 border-white z-10">
+        <button id="back-home-btn" onclick="showMenu()" class="hidden bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold px-3 py-2 rounded-2xl shadow transition transform active:scale-95 flex items-center gap-1 text-sm">
+            🏠 Меню
+        </button>
+        <div class="flex items-center gap-2">
+            <span class="text-3xl">⭐</span>
+            <span id="star-count" class="text-2xl md:text-3xl font-black text-amber-500 font-header">0</span>
+        </div>
+        
+        <!-- Max Number Selector (1 to 10) -->
+        <div class="flex items-center bg-emerald-100 border border-emerald-300 px-3 py-1.5 rounded-2xl gap-2 shadow-inner">
+            <span class="text-xs font-bold text-emerald-800">Макс:</span>
+            <button onclick="changeMaxNumber(-1)" class="w-7 h-7 bg-white rounded-full font-black text-emerald-700 shadow flex items-center justify-center active:scale-90">-</button>
+            <span id="max-num-display" class="font-black text-lg text-emerald-900 w-5 text-center">3</span>
+            <button onclick="changeMaxNumber(1)" class="w-7 h-7 bg-white rounded-full font-black text-emerald-700 shadow flex items-center justify-center active:scale-90">+</button>
+        </div>
+
+        <div class="text-right hidden sm:block">
+            <h1 id="game-title" class="text-sm md:text-base font-black text-emerald-700 font-header">Математика</h1>
+            <p class="text-xs text-emerald-600 font-bold">Оксана Евгеньевна</p>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main id="main-card" class="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-3xl p-4 md:p-8 shadow-2xl border-4 border-white flex-1 flex flex-col justify-between items-center relative overflow-hidden z-10 mb-20">
+        
+        <!-- ================= MAIN MENU ================= -->
+        <div id="menu-screen" class="w-full flex flex-col items-center space-y-4 bounce-in py-2">
+            
+            <!-- Teacher Portrait SVG in Menu -->
+            <div class="flex items-center gap-3 bg-gradient-to-r from-purple-100 to-pink-100 p-3 rounded-3xl border-2 border-purple-300 w-full shadow-sm">
+                <div class="relative w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-full border-4 border-amber-400 overflow-hidden shadow-md bg-rose-900">
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <circle cx="50" cy="50" r="50" fill="#881337"/>
+                        <path d="M 20 50 Q 15 20 50 15 Q 85 20 80 50 Q 85 85 75 95 Q 50 100 25 95 Z" fill="#1c1917"/>
+                        <ellipse cx="50" cy="48" rx="22" ry="25" fill="#fbcfe8"/>
+                        <ellipse cx="50" cy="48" rx="20" ry="23" fill="#fde047" opacity="0.1"/>
+                        <ellipse cx="42" cy="45" rx="3" ry="4" fill="#27272a"/>
+                        <ellipse cx="58" cy="45" rx="3" ry="4" fill="#27272a"/>
+                        <circle cx="43" cy="44" r="1" fill="#ffffff"/>
+                        <circle cx="59" cy="44" r="1" fill="#ffffff"/>
+                        <path d="M 43 56 Q 50 62 57 56" stroke="#e11d48" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <circle cx="37" cy="52" r="4" fill="#f43f5e" opacity="0.3"/>
+                        <circle cx="63" cy="52" r="4" fill="#f43f5e" opacity="0.3"/>
+                        <path d="M 25 38 Q 40 22 50 32 Q 60 22 75 38 Q 65 18 50 18 Q 35 18 25 38 Z" fill="#1c1917"/>
+                        <path d="M 28 80 L 38 68 L 50 78 L 62 68 L 72 80 L 85 100 L 15 100 Z" fill="#9f1239"/>
+                        <circle cx="50" cy="92" r="14" fill="#f472b6"/>
+                        <circle cx="42" cy="88" r="8" fill="#fb7185"/>
+                        <circle cx="58" cy="88" r="8" fill="#f43f5e"/>
+                        <circle cx="50" cy="82" r="7" fill="#ffffff"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-base md:text-lg font-black text-purple-900 font-header">Оксана Евгеньевна</h2>
+                    <p class="text-xs md:text-sm text-purple-700 font-bold">«Привет, Анисия! Выбирай задание!»</p>
+                </div>
+            </div>
+
+            <h3 class="text-base md:text-lg font-black text-center text-gray-700 font-header">
+                Тренировка по математике:
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+                <button onclick="startGame(1)" class="pulse-btn bg-gradient-to-r from-sky-400 to-blue-500 text-white p-3.5 rounded-2xl shadow-xl border-b-4 border-blue-700 flex items-center gap-4 text-left">
+                    <span class="text-3xl bg-white/20 p-2 rounded-2xl">🏠</span>
+                    <div>
+                        <div class="text-base font-black font-header">Числовой Домик</div>
+                        <div class="text-xs opacity-90">Состав числа</div>
+                    </div>
+                </button>
+
+                <button onclick="startGame(2)" class="pulse-btn bg-gradient-to-r from-emerald-400 to-teal-500 text-white p-3.5 rounded-2xl shadow-xl border-b-4 border-teal-700 flex items-center gap-4 text-left">
+                    <span class="text-3xl bg-white/20 p-2 rounded-2xl">🌿</span>
+                    <div>
+                        <div class="text-base font-black font-header">Веточки / Схемы</div>
+                        <div class="text-xs opacity-90">Разложи на части</div>
+                    </div>
+                </button>
+
+                <button onclick="startGame(3)" class="pulse-btn bg-gradient-to-r from-rose-400 to-red-500 text-white p-3.5 rounded-2xl shadow-xl border-b-4 border-red-700 flex items-center gap-4 text-left">
+                    <span class="text-3xl bg-white/20 p-2 rounded-2xl">🍎</span>
+                    <div>
+                        <div class="text-base font-black font-header">Яблоки на Тарелке</div>
+                        <div class="text-xs opacity-90">Положи нужное число</div>
+                    </div>
+                </button>
+
+                <button onclick="startGame(4)" class="pulse-btn bg-gradient-to-r from-amber-400 to-orange-500 text-white p-3.5 rounded-2xl shadow-xl border-b-4 border-orange-700 flex items-center gap-4 text-left">
+                    <span class="text-3xl bg-white/20 p-2 rounded-2xl">✏️</span>
+                    <div>
+                        <div class="text-base font-black font-header">Примеры</div>
+                        <div class="text-xs opacity-90">Сложение и вычитание</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= GAME PLAY AREA ================= -->
+        <div id="game-screen" class="w-full hidden flex-col items-center justify-between h-full space-y-3">
+            
+            <div id="instruction-text" class="text-sm md:text-base font-bold text-gray-700 text-center bg-amber-100 border border-amber-300 px-4 py-2 rounded-xl shadow-sm w-full">
+                Задание...
+            </div>
+
+            <div id="interactive-area" class="w-full flex-1 flex items-center justify-center min-h-[180px]">
+                <!-- Dynamic content -->
+            </div>
+
+            <!-- Dynamic Answer Buttons Grid (0 up to maxNumber) -->
+            <div id="answer-buttons-container" class="w-full">
+                <p class="text-xs text-center text-gray-400 font-bold uppercase tracking-wider mb-2">Нажми на ответ:</p>
+                <div id="dynamic-numpad" class="grid grid-cols-5 gap-2 w-full max-w-md mx-auto">
+                    <!-- Injected dynamically based on maxNumber -->
+                </div>
+            </div>
+
+            <!-- Interactive Plate Action (For Mode 3) -->
+            <div id="plate-controls" class="hidden w-full max-w-md mx-auto space-y-2">
+                <div class="flex justify-center gap-3">
+                    <button onclick="removeApple()" class="pulse-btn flex-1 bg-rose-500 text-white font-bold py-2.5 rounded-2xl shadow-lg border-b-4 border-rose-700">➖ Убрать</button>
+                    <button onclick="addApple()" class="pulse-btn flex-1 bg-emerald-500 text-white font-bold py-2.5 rounded-2xl shadow-lg border-b-4 border-emerald-700">➕ Положить</button>
+                </div>
+                <button onclick="checkPlateAnswer()" class="w-full pulse-btn bg-amber-400 text-amber-950 font-black py-3 rounded-2xl shadow-lg border-b-4 border-amber-600">Готово! 🎯</button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ================= TEACHER OKSANA EVGENIEVNA POP-UP ================= -->
+    <div id="teacher-container" class="teacher-popup teacher-hidden fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none w-full max-w-xs px-2">
+        <div id="teacher-bubble" class="bg-white border-4 border-emerald-500 p-3 rounded-3xl shadow-2xl mb-2 relative bubble-arrow w-full text-center">
+            <p id="teacher-speech" class="text-sm font-black text-gray-800 font-header leading-tight">Молодец!</p>
+        </div>
+        <div id="teacher-avatar-frame" class="relative w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-rose-900">
+            <div id="teacher-svg-holder" class="w-full h-full"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-1 text-center text-xs text-emerald-800 font-bold opacity-80 z-10">
+        Уроки математики от Оксаны Евгеньевны
+    </footer>
+
+    <!-- Audio & Game Logic -->
+    <script>
+        class SoundFX {
+            constructor() { this.ctx = null; }
+            init() {
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+            }
+            playCorrect() {
+                this.init();
+                const now = this.ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                    gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.08);
+                    osc.stop(now + idx * 0.08 + 0.3);
+                });
+            }
+            playWrong() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(240, now);
+                osc.frequency.exponentialRampToValueAtTime(130, now + 0.28);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.28);
+            }
+            playPop() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+        }
+
+        const sound = new SoundFX();
+
+        let currentMode = 1;
+        let stars = 0;
+        let maxNumber = 3; // По умолчанию от 0 до 3
+        let currentProblem = {};
+        let currentPlateApples = 0;
+        let teacherTimer = null;
+
+        function changeMaxNumber(delta) {
+            maxNumber += delta;
+            if (maxNumber < 2) maxNumber = 2;
+            if (maxNumber > 10) maxNumber = 10;
+            document.getElementById('max-num-display').innerText = maxNumber;
+            if (!document.getElementById('game-screen').classList.contains('hidden')) {
+                generateProblem();
+            }
+        }
+
+        function updateStars(count) {
+            stars += count;
+            document.getElementById('star-count').innerText = stars;
+        }
+
+        function showMenu() {
+            document.getElementById('menu-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('flex');
+            document.getElementById('back-home-btn').classList.add('hidden');
+            document.getElementById('game-title').innerText = "Математика";
+            hideTeacher();
+        }
+
+        function startGame(mode) {
+            sound.init();
+            currentMode = mode;
+            document.getElementById('menu-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('flex');
+            document.getElementById('back-home-btn').classList.remove('hidden');
+
+            const titles = { 1: "Домики", 2: "Веточки", 3: "Тарелочки", 4: "Примеры" };
+            document.getElementById('game-title').innerText = titles[mode];
+
+            generateProblem();
+        }
+
+        function buildNumpad(limit) {
+            const container = document.getElementById('dynamic-numpad');
+            container.innerHTML = '';
+            // Колонки адаптируются: если чисел много, делаем по 5 в ряд
+            container.className = limit > 5 ? "grid grid-cols-6 gap-1.5 w-full max-w-md mx-auto" : "grid grid-cols-5 gap-2 w-full max-w-md mx-auto";
+            
+            for (let i = 0; i <= limit; i++) {
+                const btn = document.createElement('button');
+                btn.className = "pulse-btn bg-indigo-500 hover:bg-indigo-600 text-white text-xl md:text-2xl font-black py-3 rounded-2xl shadow-lg border-b-4 border-indigo-700 active:translate-y-1";
+                btn.innerText = i;
+                btn.onclick = () => checkAnswer(i);
+                container.appendChild(btn);
+            }
+        }
+
+        function generateProblem() {
+            const interactiveArea = document.getElementById('interactive-area');
+            const answerButtons = document.getElementById('answer-buttons-container');
+            const plateControls = document.getElementById('plate-controls');
+            const instruction = document.getElementById('instruction-text');
+
+            interactiveArea.innerHTML = '';
+            answerButtons.classList.remove('hidden');
+            plateControls.classList.add('hidden');
+
+            const target = Math.floor(Math.random() * (maxNumber + 1));
+
+            if (currentMode === 1) {
+                instruction.innerText = `Какое число спряталось в домике числа ${target}?`;
+                const val1 = Math.floor(Math.random() * (target + 1));
+                const val2 = target - val1;
+                const hideRight = Math.random() > 0.5;
+                const expected = hideRight ? val2 : val1;
+
+                currentProblem = { target, expected };
+
+                interactiveArea.innerHTML = `
+                    <div class="relative bg-amber-500 rounded-t-full w-44 md:w-52 p-3 pt-7 text-center shadow-2xl border-4 border-amber-600 bounce-in">
+                        <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-rose-500 text-white w-14 h-14 md:w-18 md:h-18 rounded-full flex items-center justify-center text-2xl md:text-3xl font-black border-4 border-white shadow-md">
+                            ${target}
+                        </div>
+                        <div class="bg-amber-100 p-2.5 rounded-2xl border-4 border-amber-700 mt-5 grid grid-cols-2 gap-2">
+                            <div class="bg-white h-14 md:h-18 rounded-xl border-2 border-gray-300 flex items-center justify-center text-2xl md:text-3xl font-black text-blue-600 shadow-inner">
+                                ${!hideRight ? '?' : val1}
+                            </div>
+                            <div class="bg-white h-14 md:h-18 rounded-xl border-2 border-gray-300 flex items-center justify-center text-2xl md:text-3xl font-black text-blue-600 shadow-inner">
+                                ${hideRight ? '?' : val2}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                buildNumpad(maxNumber);
+            } 
+            else if (currentMode === 2) {
+                instruction.innerText = `Разложи число ${target} на части:`;
+                const val1 = Math.floor(Math.random() * (target + 1));
+                const val2 = target - val1;
+                const hideRight = Math.random() > 0.5;
+                const expected = hideRight ? val2 : val1;
+
+                currentProblem = { target, expected };
+
+                interactiveArea.innerHTML = `
+                    <div class="flex flex-col items-center bounce-in my-1">
+                        <div class="relative bg-emerald-500 text-white text-2xl md:text-3xl font-black w-14 h-14 md:w-18 md:h-18 rounded-full flex items-center justify-center border-4 border-white shadow-xl z-10">
+                            ${target}
+                            <div class="tree-line-left"></div>
+                            <div class="tree-line-right"></div>
+                        </div>
+                        <div class="flex gap-10 md:gap-12 mt-9">
+                            <div class="bg-white text-emerald-700 text-2xl font-black w-12 h-12 md:w-14 md:h-14 rounded-2xl border-4 border-emerald-500 flex items-center justify-center shadow-lg">
+                                ${!hideRight ? '?' : val1}
+                            </div>
+                            <div class="bg-white text-emerald-700 text-2xl font-black w-12 h-12 md:w-14 md:h-14 rounded-2xl border-4 border-emerald-500 flex items-center justify-center shadow-lg">
+                                ${hideRight ? '?' : val2}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                buildNumpad(maxNumber);
+            }
+            else if (currentMode === 3) {
+                instruction.innerText = "Положи на тарелку столько яблок, сколько нужно!";
+                answerButtons.classList.add('hidden');
+                plateControls.classList.remove('hidden');
+
+                currentPlateApples = Math.floor(Math.random() * (maxNumber + 1));
+                currentProblem = { target };
+                renderPlate();
+            }
+            else if (currentMode === 4) {
+                instruction.innerText = "Реши пример:";
+                const isAddition = Math.random() > 0.5;
+                let num1, num2, expected, opSymbol;
+
+                if (isAddition) {
+                    num1 = Math.floor(Math.random() * (target + 1));
+                    num2 = target - num1;
+                    expected = num1 + num2;
+                    opSymbol = '+';
+                } else {
+                    num1 = target;
+                    num2 = Math.floor(Math.random() * (target + 1));
+                    expected = num1 - num2;
+                    opSymbol = '−';
+                }
+
+                currentProblem = { expected };
+
+                interactiveArea.innerHTML = `
+                    <div class="bg-gradient-to-r from-purple-100 to-pink-100 p-4 md:p-6 rounded-3xl border-4 border-purple-300 shadow-xl flex items-center gap-2 text-2xl md:text-4xl font-black text-purple-900 bounce-in">
+                        <span>${num1}</span>
+                        <span class="text-pink-600">${opSymbol}</span>
+                        <span>${num2}</span>
+                        <span class="text-purple-400">=</span>
+                        <span class="bg-white border-4 border-purple-400 border-dashed rounded-2xl w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-purple-600">?</span>
+                    </div>
+                `;
+                buildNumpad(maxNumber);
+            }
+        }
+
+        function renderPlate() {
+            const interactiveArea = document.getElementById('interactive-area');
+            let applesHTML = '';
+            for (let i = 0; i < currentPlateApples; i++) {
+                applesHTML += `<span class="text-3xl md:text-5xl apple-anim drop-shadow-md">🍎</span>`;
+            }
+
+            interactiveArea.innerHTML = `
+                <div class="flex flex-col items-center space-y-2 bounce-in">
+                    <div class="bg-rose-500 text-white font-black px-4 py-1 rounded-full text-lg border-2 border-white shadow-md flex items-center gap-2">
+                        <span>Надо яблок:</span>
+                        <span class="text-xl font-header">${currentProblem.target}</span>
+                    </div>
+                    <div class="relative bg-slate-100 border-8 border-slate-200 rounded-full w-48 h-48 md:w-60 md:h-60 shadow-2xl flex items-center justify-center p-3 flex-wrap gap-2 content-center">
+                        <div class="absolute inset-2 border-2 border-dashed border-slate-300 rounded-full pointer-events-none"></div>
+                        ${applesHTML.length > 0 ? applesHTML : '<span class="text-gray-300 font-bold text-xs">Тарелка пустая</span>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function addApple() {
+            if (currentPlateApples <= maxNumber) {
+                sound.playPop();
+                currentPlateApples++;
+                renderPlate();
+            }
+        }
+
+        function removeApple() {
+            if (currentPlateApples > 0) {
+                sound.playPop();
+                currentPlateApples--;
+                renderPlate();
+            }
+        }
+
+        function checkPlateAnswer() {
+            if (currentPlateApples === currentProblem.target) {
+                handleSuccess();
+            } else {
+                handleWrong();
+            }
+        }
+
+        function checkAnswer(selected) {
+            if (selected === currentProblem.expected) {
+                handleSuccess();
+            } else {
+                handleWrong();
+            }
+        }
+
+        function getTeacherSVG(isHappy) {
+            return `
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="50" fill="${isHappy ? '#881337' : '#450a0a'}"/>
+                    <path d="M 18 50 Q 12 18 50 12 Q 88 18 82 50 Q 88 85 76 95 Q 50 100 24 95 Z" fill="#1c1917"/>
+                    <ellipse cx="50" cy="48" rx="22" ry="25" fill="#fbcfe8"/>
+                    <ellipse cx="42" cy="45" rx="3.5" ry="${isHappy ? '4.5' : '3'}" fill="#27272a"/>
+                    <ellipse cx="58" cy="45" rx="3.5" ry="${isHappy ? '4.5' : '3'}" fill="#27272a"/>
+                    <circle cx="43" cy="43" r="1.2" fill="#ffffff"/>
+                    <circle cx="59" cy="43" r="1.2" fill="#ffffff"/>
+                    <path d="${isHappy ? 'M 42 55 Q 50 64 58 55' : 'M 42 58 Q 50 50 58 58'}" stroke="#e11d48" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <circle cx="36" cy="52" r="4" fill="#f43f5e" opacity="${isHappy ? '0.4' : '0.1'}"/>
+                    <circle cx="64" cy="52" r="4" fill="#f43f5e" opacity="${isHappy ? '0.4' : '0.1'}"/>
+                    <path d="M 23 38 Q 40 20 50 30 Q 60 20 77 38 Q 65 16 50 16 Q 35 16 23 38 Z" fill="#1c1917"/>
+                    <path d="M 26 80 L 38 66 L 50 78 L 62 66 L 74 80 L 88 100 L 12 100 Z" fill="${isHappy ? '#9f1239' : '#7f1d1d'}"/>
+                    <circle cx="50" cy="92" r="15" fill="#f472b6"/>
+                    <circle cx="41" cy="87" r="9" fill="#fb7185"/>
+                    <circle cx="59" cy="87" r="9" fill="#f43f5e"/>
+                    <circle cx="50" cy="80" r="8" fill="#ffffff"/>
+                </svg>
+            `;
+        }
+
+        function showTeacher(isHappy, message) {
+            clearTimeout(teacherTimer);
+            const container = document.getElementById('teacher-container');
+            const frame = document.getElementById('teacher-avatar-frame');
+            const svgHolder = document.getElementById('teacher-svg-holder');
+            const bubble = document.getElementById('teacher-speech');
+
+            svgHolder.innerHTML = getTeacherSVG(isHappy);
+            bubble.innerText = message;
+
+            container.classList.remove('teacher-hidden');
+            container.classList.add('teacher-visible');
+
+            if (isHappy) {
+                frame.classList.add('happy-glow');
+            } else {
+                frame.classList.remove('happy-glow');
+            }
+
+            teacherTimer = setTimeout(() => {
+                hideTeacher();
+            }, 2500);
+        }
+
+        function hideTeacher() {
+            const container = document.getElementById('teacher-container');
+            container.classList.remove('teacher-visible');
+            container.classList.add('teacher-hidden');
+        }
+
+        function handleSuccess() {
+            sound.playCorrect();
+            updateStars(1);
+            
+            const praise = [
+                "Умничка, Анисия! 🌸",
+                "Великолепно! Оксана Евгеньевна гордится!",
+                "Правильно! Так держать! ⭐",
+                "Отличный ответ! Прекрасно!"
+            ];
+            const randomMsg = praise[Math.floor(Math.random() * praise.length)];
+            showTeacher(true, randomMsg);
+
+            confetti({
+                particleCount: 50,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            setTimeout(() => {
+                generateProblem();
+            }, 1800);
+        }
+
+        function handleWrong() {
+            sound.playWrong();
+            const support = [
+                "Ой, давай подумаем ещё раз! 🤔",
+                "Почти получилось, попробуй снова!",
+                "Ничего страшного, давай пересчитаем!",
+                "Оксана Евгеньевна верит в тебя!"
+            ];
+            const randomMsg = support[Math.floor(Math.random() * support.length)];
+            showTeacher(false, randomMsg);
+        }
+    </script>
+</body>
+</html>
